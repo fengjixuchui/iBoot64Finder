@@ -65,7 +65,7 @@ void *find_insn_before_ptr(void *ptr, uint32_t search, int size) {
 void *memdata(void *ibot, int length, uint64_t data, int data_size, void *last_ptr) {
   int loc = length - (ibot - last_ptr);
  
-  void *ptr = (void*)memmem(last_ptr + 0x4, loc - 0x4, (const char *)&data, data_size);
+  void *ptr = (void *)memmem(last_ptr + 0x4, loc - 0x4, (const char *)&data, data_size);
   
   if (ptr) return ptr;
  
@@ -106,8 +106,8 @@ else                      x = vers5;
 
 void find_image(void *ibot, int length) {
   locate_func(ibot, length, 
-    hex_set(4076, hex_set(3406, 0x89e68c72, 0xC0008072), 0x6000a872), 
-    hex_set(4076, hex_set(3406, 0x080C40B9, 0x6000a852), 0xC0008052), "_image_load");
+    hex_set(4076, hex_set(3406, 0x89e68c72, 0xc0008072), 0x6000a872), 
+    hex_set(4076, hex_set(3406, 0x080c40b9, 0x6000a852), 0xc0008052), "_image_load");
 
   locate_func(ibot, length, 
     0x09090253, hex_set(2817, 0x087c40d3, 0xe80300aa), "_image4_load");
@@ -117,7 +117,7 @@ void find_image(void *ibot, int length) {
 
   locate_func(ibot, length,
     hex_set(4013, hex_set(3406, 0xe20318aa, 0x48af8d72), 0x2410487a), 
-    hex_set(4013, hex_set(3406, 0x810240f9, 0x010B40b9), 0x48af8d52), "_image_load_file");
+    hex_set(4013, hex_set(3406, 0x810240f9, 0x010b40b9), 0x48af8d52), "_image_load_file");
 
   insn_set(insn, 
     0x2a5d1053, 0x0a5d1053, 0x0a5d1053, 0x2b5d1053, 0x2b5d1053);
@@ -145,6 +145,14 @@ void find_image(void *ibot, int length) {
   insn_set(_insn,
     0xea279f1a, 0x2b0840b9, 0x2b0840b9, 0xa80e40f9, 0xc91640f9);
   locate_func(ibot, length, insn, _insn, "_image4_process_superblock");
+
+  locate_func(ibot, length,
+    0xe30313aa, hex_set(2817, hex_set(2261, 0xe822c89a, 0x6823c99a), 0xe822c99a),
+    "_Img4DecodeEvaluateDictionaryProperties");
+
+  locate_func(ibot, length, 0x1F0500F1, 0x210843b2, "_Img4DecodeGetPropertyBoolean");
+
+  locate_func(ibot, length, 0x1f1100f1, 0x210843B2, "_Img4DecodeGetPropertyData");
 }
 
 void find_libc(void *ibot, int length) {
@@ -173,6 +181,10 @@ void find_libc(void *ibot, int length) {
 
 // This one is kind of hard...
 void find_platform(void *ibot, int length) {
+  locate_func(ibot, length,
+    hex_set(5540, hex_set(4513, 0x005d1053, 0x94120011), 0x287b75b8),
+    hex_set(5540, hex_set(4513, 0x48c0a1f2, 0x605a36b8), 0xbf0a00f1), "_platform_update_device_tree");
+
   locate_func(ibot, length, 
     hex_set(5540, 0x2879a8b8, 0x307ab0b8), 0xe00313aa, "_platform_quiesce_hardware");
 
@@ -181,6 +193,10 @@ void find_platform(void *ibot, int length) {
   insn_set(_insn,
     0x09011c32, 0x68021c32, 0x68021c32, 0x087c44d3, 0x1315881a);
   locate_func(ibot, length, insn, _insn, "_platform_get_iboot_flags");
+
+  locate_func(ibot, length, 
+    hex_set(4513, hex_set(2817, 0x002d0c53, 0x007d1c53), 0x097d55d3), 
+    hex_set(4513, 0x48c0a1f2, 0x082540b9), "_platform_get_memory_size"); // iOS 9 to 12 : the function is below.
 
   locate_func(ibot, length, 
     hex_set(2817, 0xe17f40b2, 0x01008012),
@@ -193,6 +209,8 @@ void find_platform(void *ibot, int length) {
   locate_func(ibot, length, 0x29011f32, insn, "_platform_get_nonce");
 
   locate_func(ibot, length, 0x01190012, 0xe00313aa, "_platform_bootprep");
+
+  locate_func(ibot, length, 0x13041f33, 0x2800002a, "_platform_disable_keys");
 }
 
 void find_load(void *ibot, int length) {
@@ -234,6 +252,28 @@ void find_usb(void *ibot, int length) {
   locate_func(ibot, length, 0x020080d2, insn, "_usb_core_init");
 }
 
+void find_der(void *ibot, int length) {
+  locate_func(ibot, length, hex_set(4076, 0x090280f2, 0x0900e4f2), 0xf60301aa, "_DERParseSequence");
+
+  locate_func(ibot, length,
+    0x680600f9, hex_set(5540, hex_set(2261, 0x09fe9ff2, 0x08fd41d3), 0x0900e2f2), "_DERDecodeSeqInit");
+
+  locate_func(ibot, length,
+    hex_set(2817, 0x891240b9, 0x680200f9),
+    hex_set(4513, 0x682640a9, 0x082440a9), "_DERDecodeSeqNext");
+
+  locate_func(ibot, length, 0x09fd60d3, 0xf30301aa, "_DERParseInteger");
+
+  locate_func(ibot, length,
+    hex_set(4076, hex_set(3406, 0x018a8672, 0xa1898672), 0x418a8652), 0xe30313aa, "_DERImg4DecodePayload");
+
+  locate_func(ibot, length,
+    hex_set(4076, 0x418a8672, 0xa129a972),
+    hex_set(3406, 0x080840b9, 0x080440f9), "_DERImg4DecodeRestoreInfo");
+
+  locate_func(ibot, length, 0x6002803d, 0x1f0114eb, "_DERImg4DecodeFindInSequence");
+}
+
 void find_sep(void *ibot, int length) {
   locate_func(ibot, length, 
     hex_set(5540, 0x2902a072, 0x2802a072), 0xf30300aa, "_sep_client_set_antireplay_size"); // A11+
@@ -260,20 +300,29 @@ void *find_funcs(void *ibot, int length, int extra) {
 
   find_platform(ibot, length);
 
+  find_der(ibot, length);
+
   find_load(ibot, length);
 
   find_usb(ibot, length);
 
   if (extra) {
+    locate_func(ibot, length, 0x48210b9b, 0x0b098052, "_rtbuddy_register_endpoint"); // A11+ (iOS 12+)
+
+    locate_func(ibot, length,
+      hex_set(2817, 0x090100b9, 0x080140f9),
+      hex_set(2817, 0x1f510071, 0xc81040f9), "_verify_signature_rsa"); // ?
+
+    locate_func(ibot, length, 0xff830091, 0x0800088b, "_alloc_kernel_mem"); // iOS 10+
     insn_set(insn,
-     0x60023fd6, 0xa0023fd6, 0x80023fd6, 0x680d8052, 0x80023fd6);
+      0x60023fd6, 0xa0023fd6, 0x80023fd6, 0x680d8052, 0x80023fd6);
     locate_func(ibot, length, insn, 0x03008052, "_prepare_and_jump");
+
+    locate_func(ibot, length, 0x63040091, 0x01014079, "_verify_pkcs1_sig");
 
     locate_func(ibot, length, 0xe0039f5a, 0xe30316aa, "_aes_crypto_cmd");
 
     locate_func(ibot, length, 0x00815fb8, 0xf30302aa, "_boot_object");
-
-    locate_func(ibot, length, 0x48210B9b, 0x0b098052, "_rtbuddy_register_endpoint"); // A11+ (iOS 12+)
   }
 
   insn_set(insn, 0x480100f9, 0x880300f9, 0x0801138b, 0x080300f9, 0x0801138b);
@@ -282,6 +331,10 @@ void *find_funcs(void *ibot, int length, int extra) {
   locate_func(ibot, length, 0xa11a40f9, 0xe00308aa, "_nvram_save");
 
   find_libc(ibot, length);
+
+  locate_func(ibot, length,
+    hex_set(4076, 0x20018052, 0x3f0d0071),
+    hex_set(4076, 0x08050011, 0x29050011), "_panic");
 
   return ibot;
 }
@@ -363,11 +416,6 @@ int main(int argc, char *argv[]) {
 
     if (version >= 6603) {
       printf("[%s]: iOS 14 is not supported yet, come back soon!\n", __func__);
-      return -1;
-    }
-
-    if (strcmp(ibot + 0x240, "ROMRELEASE") == 0) {
-      printf("[%s]: SecureROM is not supported, only iBoot bootloaders are.\n", __func__);
       return -1;
     }
 
